@@ -1,0 +1,25 @@
+\begin{definition}[One-Way Function]\label{def:owf}
+            Let $\lambda$ be a security parameter. Let $\mathcal{F} = \{f_{\lambda}: \mathcal{X}_{\lambda} \to \mathcal{Y}_{\lambda}\}_{\lambda \in \mathbb{N}}$ be a family of functions, where $\mathcal{X}_{\lambda}$ and $\mathcal{Y}_{\lambda}$ are finite sets and $\mathcal{X}_{\lambda}$ is sampled efficiently.
+            $\mathcal{F}$ is a \textbf{one-way function (OWF) family} if the following two conditions hold:
+            1.  \textbf{Efficient Evaluation:} There exists a deterministic polynomial-time algorithm $\mathrm{Eval}$ such that for all $\lambda \in \mathbb{N}$ and all inputs $x \in \mathcal{X}_{\lambda}$, we have:
+                $$\mathrm{Eval}(1^{\lambda}, x) = f_{\lambda}(x).$$
+            2.  \textbf{Hard to Invert (One-Wayness):} For every probabilistic polynomial-time (PPT) adversary $\mathcal{A}$, there exists a negligible function $\negl(\lambda)$ such that:
+                \begin{equation}
+                    \Pr\left[
+                    \begin{array}{l}
+                        x \gets \mathcal{X}_{\lambda} \\
+                        y \gets f_{\lambda}(x) \\
+                        x' \gets \mathcal{A}(1^{\lambda}, y)
+                    \end{array}
+                    : f_{\lambda}(x') = y
+                    \right] \leq \negl(\lambda).
+                \end{equation}
+                The probability is taken over the random choice of $x$ and the random coins of $\mathcal{A}$.
+            \end{definition}
+            \begin{remark}
+            This is the asymptotic, complexity-theoretic definition. For a concrete security analysis, we say a specific function $f$ is \textbf{$(t, \epsilon)$-one-way} if no adversary running in time at most $t$ can succeed in the above inversion game with probability greater than $\epsilon$.
+            \end{remark}
+        \begin{equation}
+            \text{OWF}_{f,n}(x) = f^{[n]}(x)
+        \end{equation}
+        with security based on the AIIP problem.
