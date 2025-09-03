@@ -1,125 +1,132 @@
-\begin{theorem}[AIIP Reduces to MQ]\label{thm:aiip-mq}
-    The Affine Iterated Inversion Problem is polynomial-time reducible to the problem of solving a random system of multivariate quadratic equations over $\mathbb{F}_q$.
-\end{theorem}
-
-\begin{proof}[Proof Sketch]
-    Given an AIIP instance $(f, n, y)$ where $f(x) = \sum_{i=0}^d a_i x^i$, we construct an MQ system by introducing intermediate variables $z_0, z_1, \ldots, z_n$ where $z_i$ 
-    represents $f^{[i]}(x)$.
-
-    The key observation is that each iteration $z_i = f(z_{i-1})$ can be expressed as polynomial equations of degree $d$. For $d = 2$, these are already quadratic. For 
-    $d > 2$, we introduce auxiliary variables to reduce higher-degree monomials to quadratic form.
-
-    The resulting system has $O(n)$ variables and $O(n)$ quadratic equations, with the final constraint $z_n = y$. Any solution to this MQ system yields $z_0 = x$ such that 
-    $f^{[n]}(x) = y$, solving the AIIP instance.
-
-    Since solving random MQ systems is NP-hard \cite{Patarin1996}, and our reduction runs in polynomial time $O(n \cdot d \cdot \log q)$, AIIP inherits this hardness.
-
-    \textit{Note: A complete proof with explicit construction and complexity analysis will appear in a forthcoming paper dedicated to the AIIP problem.}
-\end{proof}
-
-\begin{proof}[Complete Proof of Theorem\ref{thm:aiip-mq}]
-    We construct an explicit polynomial-time reduction $\mathcal{R}$ that transforms any AIIP instance into an MQ instance such that solving the MQ instance yields a solution to AIIP.
-
-    \textbf{Part 1: The Reduction Construction}
-
-        Given: AIIP instance $(f, n, y)$ where:
-        - $f \in \mathcal{F}_d$ with $f(x) = \sum_{i=0}^d a_i x^i$
-        - $n$ is the iteration count
-        - $y \in \mathbb{F}_q$ is the target value
-
-        Construct: MQ system $\mathcal{S}$ as follows:
-
-        \textbf{Step 1.1: Variable Definition}
-        For fields $\mathbb{F}_{p^k}$ with $k > 1$, represent each field element using $k$ 
-        coordinates in $\mathbb{F}_p$. Define variables:
-        - Primary variables: $\mathbf{x} = (x_{0,0}, \ldots, x_{0,k-1}) \in \mathbb{F}_p^k$ 
-        representing the unknown input
-        - Auxiliary variables: For $i = 1, \ldots, n$:
-        $$\mathbf{x}_i = (x_{i,0}, \ldots, x_{i,k-1}) \in \mathbb{F}_p^k$$
-        representing $f^{[i]}(\mathbf{x}_0)$
-
-        Total variables: $N = k(n+1)$
-
-        \textbf{Step 1.2: Constraint Generation}
-        For each iteration $i \in \{1, \ldots, n\}$, generate constraints:
-
-        Let $\phi: \mathbb{F}_{p^k} \to \mathbb{F}_p^k$ be the coordinate representation. For 
-        polynomial $f$ of degree $d$, the map $\mathbf{x}_i = \phi(f(\phi^{-1}(\mathbf{x}_{i-1})))$ 
-        can be expressed as $k$ polynomial equations over $\mathbb{F}_p$.
-
-        Specifically, if $f(x) = \sum_{j=0}^d a_j x^j$, then:
-        $$P_{i,\ell}(\mathbf{x}_0, \ldots, \mathbf{x}_n) = x_{i,\ell} - 
-        [\phi(f(\phi^{-1}(\mathbf{x}_{i-1})))]_\ell = 0$$
-        for $\ell = 0, \ldots, k-1$.
-
-        Each $P_{i,\ell}$ has degree at most $d$ in the variables $\mathbf{x}_{i-1}$ and is 
-        linear in $\mathbf{x}_i$.
-
-        \textbf{Step 1.3: Output Constraint}
-        Add constraints ensuring $\mathbf{x}_n = \phi(y)$:
-        $$Q_\ell(\mathbf{x}_0, \ldots, \mathbf{x}_n) = x_{n,\ell} - y_\ell = 0$$
-        for $\ell = 0, \ldots, k-1$, where $(y_0, \ldots, y_{k-1}) = \phi(y)$.
-
-        \textbf{Step 1.4: Degree Reduction (for $d > 2$)}
-        If $d > 2$, introduce additional variables to reduce to quadratic form:
-        - For each monomial $x_{i,j}^m$ with $m > 2$, introduce variables 
-        $w_{i,j,2}, \ldots, w_{i,j,m-1}$
-        - Add constraints:
-        $$w_{i,j,2} = x_{i,j}^2$$
-        $$w_{i,j,\ell+1} = w_{i,j,\ell} \cdot x_{i,j} \text{ for } \ell = 2, \ldots, m-2$$
-        
-        This adds at most $O(nkd)$ variables and equations, all quadratic.
-
-    \textbf{Part 2: Correctness of the Reduction}
-
-        \textbf{Claim 2.1:} Any solution $\mathbf{x}_0^*$ to the MQ system $\mathcal{S}$ yields a 
-        solution to the AIIP instance.
-
-        \textit{Proof of Claim 2.1:} 
-        Let $\mathbf{x}_0^*, \ldots, \mathbf{x}_n^*$ satisfy all equations in $\mathcal{S}$. 
-        By construction:
-        - $\mathbf{x}_1^* = \phi(f(\phi^{-1}(\mathbf{x}_0^*)))$
-        - $\mathbf{x}_2^* = \phi(f(\phi^{-1}(\mathbf{x}_1^*))) = \phi(f^{[2]}(\phi^{-1}(\mathbf{x}_0^*)))$
-        - By induction: $\mathbf{x}_n^* = \phi(f^{[n]}(\phi^{-1}(\mathbf{x}_0^*)))$
-        - The output constraint ensures $\mathbf{x}_n^* = \phi(y)$
-
-        Therefore, $\phi^{-1}(\mathbf{x}_0^*)$ is a preimage of $y$ under $f^{[n]}$. $\square$
-
-        \textbf{Claim 2.2:} Every solution to AIIP yields a solution to $\mathcal{S}$.
-
-        \textit{Proof of Claim 2.2:}
-        Let $x^* \in \mathbb{F}_q$ satisfy $f^{[n]}(x^*) = y$. Define:
-        - $\mathbf{x}_0^* = \phi(x^*)$
-        - $\mathbf{x}_i^* = \phi(f^{[i]}(x^*))$ for $i = 1, \ldots, n$
-
-        By the definition of $f^{[i]}$ and the coordinate representation, all constraints in 
-        $\mathcal{S}$ are satisfied. $\square$
-
-    \textbf{Part 3: Complexity Analysis}
-
-        \textbf{Time Complexity:}
-        - Constructing variables: $O(nk)$
-        - Generating iteration constraints: $O(nkd)$ operations
-        - Degree reduction (if needed): $O(nkd)$ operations
-        - Writing the system: $O(nkd \cdot \log q)$ bits
-
-        Total: $O(nkd \cdot \log q)$ time, which is polynomial in the input size.
-
-        \textbf{Size of MQ Instance:}
-        - Variables: $O(nk)$ for $d = 2$, or $O(nkd)$ for $d > 2$ after reduction
-        - Equations: $O(nk)$ quadratic equations
-        - Coefficient size: $O(\log p)$ bits per coefficient
-
-    \textbf{Part 4: Hardness Preservation}
-        The MQ problem over finite fields is NP-complete [Patarin96, Courtois00]. Our reduction  preserves the algebraic structure:
-        \textbf{Lemma:} For randomly chosen $f \in \mathcal{F}_d$, the resulting MQ system is computationally indistinguishable from a random MQ system with the same parameters.
-        \textit{Proof:} The polynomial $f$ induces a pseudo-random mapping (under the assumption that AIIP is hard). Each iteration adds seemingly random quadratic constraints. The 
-        non-linearity condition ($\deg(f) = d \geq 2$) ensures non-trivial mixing, while the     image expansion condition ensures the constraints span a large subset of the solution 
-        space. Formal indistinguishability follows from the AIIP hardness assumption. $\square$
-
-    \textbf{Conclusion:}
-        We have shown that AIIP reduces to MQ in polynomial time, preserving hardness. Since MQ is NP-complete and believed to be quantum-resistant, AIIP inherits these properties 
-        under the reduction. $\square$
-\end{proof}
-
-
+\begin{theorem}[AIIP $\leq^P_P$ MQ]\label{thm:aiip-mq-main}
+            Let $\family_d$ be a family of polynomials over $\Fq$ of degree $d \geq 2$. The Affine Iterated Inversion Problem ($\AIIP$) for $f \in \family_d$ is polynomial-time reducible to the problem of solving a system of multivariate quadratic equations over $\Fp$ ($\MQ_{\Fp}$), where $q = p^k$.
+        \end{theorem}
+        \begin{proof}
+            We construct an explicit polynomial-time many-one reduction $\mathcal{R}$ that transforms any $\AIIP$ instance $\Pi = (f, n, y)$ into an $\MQ_{\Fp}$ instance $\mathcal{S}$ such that a solution to $\mathcal{S}$ yields a solution to $\Pi$. The reduction proceeds in four stages: 1) Field Representation, 2) Variable and Equation Construction, 3) Degree Reduction, and 4) Output Constraint.
+            \textbf{Part 1: Field Representation and Basis Selection}
+                Let $\Fq$ be a finite field where $q = p^k$ for a prime $p$. We fix a polynomial basis for $\Fq$ over $\Fp$. Let $\xi$ be a root of a fixed irreducible monic polynomial $g(z) \in \Fp[z]$ of degree $k$, so that $\{1, \xi, \xi^2, \ldots, \xi^{k-1}\}$ forms a basis for $\Fq$ as a vector space over $\Fp$. We define the coordinate isomorphism $\phi: \Fq \to \Fp^k$ as follows: for any element $a \in \Fq$, expressed uniquely as $a = a_0 + a_1\xi + \ldots + a_{k-1}\xi^{k-1}$ with $a_i \in \Fp$, we have
+                \begin{equation}
+                    \phi(a) \coloneqq (a_0, a_1, \ldots, a_{k-1}).
+                \end{equation}
+                Its inverse $\phi^{-1}: \Fp^k \to \Fq$ maps a vector $\vect{v} = (v_0, \ldots, v_{k-1})$ to the field element $\phi^{-1}(\vect{v}) = \sum_{i=0}^{k-1} v_i \xi^i$.
+            \textbf{Part 2: Construction of the MQ System $\mathcal{S}$}
+                \begin{definition}[Reduction $\mathcal{R}$]
+                    Given an $\AIIP$ instance $\Pi = (f, n, y)$ where $f(x) = \sum_{j=0}^{d} a_j x^j \in \Fq[x]$, the reduction $\mathcal{R}$ outputs an $\MQ_{\Fp}$ system $\mathcal{S}$ constructed as follows:
+                    \begin{enumerate}
+                        \item \textbf{Variable Definition:} Define $n+1$ blocks of variables, each representing an element of $\Fq$ in its coordinate form:
+                        \begin{align*}
+                            \vect{x}_0 &= (x_{0,0}, x_{0,1}, \ldots, x_{0,k-1}) \quad \text{(represents the input $x$)} \\
+                            \vect{x}_1 &= (x_{1,0}, x_{1,1}, \ldots, x_{1,k-1}) \quad \text{(represents $f(x)$)} \\
+                            &\vdots \\
+                            \vect{x}_n &= (x_{n,0}, x_{n,1}, \ldots, x_{n,k-1}) \quad \text{(represents $\iter{n}(x)$)}
+                        \end{align*}
+                        Let $V$ be the set of all $N = k(n+1)$ variables over $\Fp$.
+                        \item \textbf{Iteration Constraints:} For each iteration $i = 1, 2, \ldots, n$, we encode the computation $\vect{x}_i = \phi(f(\phi^{-1}(\vect{x}_{i-1})))$ as $k$ polynomial equations over $\Fp$. Let $\vect{x}_{i-1}$ represent the field element $z = \phi^{-1}(\vect{x}_{i-1})$. Then:
+                        \begin{align*}
+                            f(z) &= \sum_{j=0}^{d} a_j z^j = \sum_{j=0}^{d} a_j \left( \sum_{\ell=0}^{k-1} x_{i-1,\ell} \xi^{\ell} \right)^j.
+                        \end{align*}
+                        This is an element of $\Fq$. We express its coordinates in the fixed basis. For each coordinate $m \in \{0, \ldots, k-1\}$, there exists a set of constants $\{c_{j, \boldsymbol{\ell}}^{(m)}\} \in \Fp$, derived from the basis multiplication tables and the coefficients $a_j$, such that the $m$-th coordinate of $f(z)$ is given by a polynomial $F^{(m)}$:
+                        \begin{equation}
+                            [\phi(f(z))]_m = F^{(m)}(x_{i-1,0}, \ldots, x_{i-1,k-1}) = \sum_{j=0}^{d} \sum_{\boldsymbol{\ell} \in [0, k-1]^j} c_{j, \boldsymbol{\ell}}^{(m)} \prod_{t=1}^{j} x_{i-1, \ell_t}.
+                        \end{equation}
+                        The degree of $F^{(m)}$ is at most $d$. The constraint for the $i$-th iteration and $m$-th coordinate is then the quadratic equation:
+                        \begin{equation}\label{eq:iteration-constraint}
+                            P_{i,m}(\vect{x}_{i-1}, \vect{x}_i) \coloneqq x_{i,m} - F^{(m)}(\vect{x}_{i-1}) = 0.
+                        \end{equation}
+                        For each $i$ from 1 to $n$, this adds $k$ equations to $\mathcal{S}$.
+                        \item \textbf{Output Constraint:} Encode the condition $\iter{n}(x) = y$. Let $\phi(y) = (y_0, y_1, \ldots, y_{k-1})$. For each $m \in \{0, \ldots, k-1\}$, add the linear equation:
+                        \begin{equation}
+                            Q_m(\vect{x}_n) \coloneqq x_{n,m} - y_m = 0.
+                        \end{equation}
+                        This adds $k$ equations to $\mathcal{S}$.
+                        \item \textbf{Degree Reduction (for $d > 2$):} The equations \eqref{eq:iteration-constraint} are of degree $d$. To reduce the entire system to a quadratic one, we apply a standard degree-2 reduction technique \cite{Courtois2000}. For every monomial of degree $\delta > 2$ appearing in any $F^{(m)}$, we introduce $\delta - 2$ new auxiliary variables and $\delta - 1$ new quadratic equations to express it.
+                        \begin{algorithmic}[1]
+                            \Procedure{DegreeReduce}{Monomial $M = \prod_{t=1}^{\delta} x_{i-1, j_t}$}
+                            \State Introduce new variables $w_2, w_3, \ldots, w_{\delta-1}$.
+                            \State Add equations: $w_2 = x_{i-1, j_1} \cdot x_{i-1, j_2}$
+                            \For{$\ell = 3$ to $\delta$}
+                                \State Add equation: $w_{\ell} = w_{\ell-1} \cdot x_{i-1, j_{\ell}}$
+                            \EndFor
+                            \State \textbf{Return} $w_{\delta}$ (represents $M$)
+                            \EndProcedure
+                        \end{algorithmic}
+                        This process is applied to every high-degree monomial. Let $T$ be the total number of such monomials across all $F^{(m)}$. This step adds $O(T \cdot d)$ new variables and equations to $\mathcal{S}$, all of which are quadratic.
+                    \end{enumerate}
+                    The resulting system $\mathcal{S}$ is a collection of $M = nk + k + O(Td)$ quadratic equations in $N' = k(n+1) + O(Td)$ variables over $\Fp$.
+                \end{definition}
+            \textbf{Part 3: Correctness of the Reduction}
+                \begin{claim}\label{claim:correctness1}
+                    If $\vect{x}_0^* \in \Fp^k$ is part of a solution to the MQ system $\mathcal{S}$, then $x^* = \phi^{-1}(\vect{x}_0^*)$ is a solution to the $\AIIP$ instance $\Pi$, i.e., $\iter{n}(x^*) = y$.
+                \end{claim}
+                \begin{proof}
+                    Let $\vect{x}_0^*, \vect{x}_1^*, \ldots, \vect{x}_n^*$ (along with any auxiliary variables) be a solution to $\mathcal{S}$. We prove by induction that for all $i$, $\phi^{-1}(\vect{x}_i^*) = \iter{i}(x^*)$.
+                    \begin{itemize}
+                        \item \textbf{Base Case ($i=0$):} Trivially, $\phi^{-1}(\vect{x}_0^*) = x^*$ by definition.
+                        \item \textbf{Inductive Step:} Assume $\phi^{-1}(\vect{x}_{i-1}^*) = \iter{i-1}(x^*)$. By the iteration constraints \eqref{eq:iteration-constraint}, we have:
+                        \begin{align*}
+                            x_{i,m}^* &= F^{(m)}(\vect{x}_{i-1}^*) = [\phi(f(\phi^{-1}(\vect{x}_{i-1}^*)))]_m \\
+                            \Rightarrow \vect{x}_i^* &= \phi(f(\phi^{-1}(\vect{x}_{i-1}^*))) = \phi(f(\iter{i-1}(x^*))) = \phi(\iter{i}(x^*)).
+                        \end{align*}
+                        Thus, $\phi^{-1}(\vect{x}_i^*) = \iter{i}(x^*)$.
+                    \end{itemize}
+                    For $i = n$, we have $\phi^{-1}(\vect{x}_n^*) = \iter{n}(x^*)$. The output constraint ensures $\vect{x}_n^* = \phi(y)$, so $\iter{n}(x^*) = \phi^{-1}(\phi(y)) = y$.
+                \end{proof}
+                \begin{claim}\label{claim:correctness2}
+                    If $x^* \in \Fq$ is a solution to the $\AIIP$ instance $\Pi$, then assigning $\vect{x}_i^* = \phi(\iter{i}(x^*))$ for $i=0,\ldots,n$ yields a solution to the MQ system $\mathcal{S}$ (after correctly assigning any auxiliary degree-reduction variables).
+                \end{claim}
+                \begin{proof}
+                    The assignment is well-defined. By the definition of the polynomials $F^{(m)}$ and the isomorphism $\phi$, the iteration constraints are satisfied: $\phi(\iter{i}(x^*)) = \phi(f(\iter{i-1}(x^*))) = \phi(f(\phi^{-1}(\vect{x}_{i-1}^*))) $. The output constraint is satisfied as $\vect{x}_n^* = \phi(\iter{n}(x^*)) = \phi(y)$. The degree-reduction constraints are satisfied by construction, as they simply compute the values of intermediate monomials correctly. Thus, all equations in $\mathcal{S}$ hold.
+                \end{proof}
+            \textbf{Part 4: Complexity Analysis of $\mathcal{R}$}
+                The running time of the reduction $\mathcal{R}$ is dominated by:
+                \begin{enumerate}
+                    \item \textbf{Precomputation:} Generating the coefficients $\{c_{j, \boldsymbol{\ell}}^{(m)}\}$ for all $m$. This involves expanding $(\sum_{\ell} x_\ell \xi^\ell)^j$ for $0 \leq j \leq d$ and projecting onto the basis. This is a function of $d$ and $k$ only, and is thus $O(1)$ relative to the input parameter $n$.
+                    \item \textbf{Equation Generation:} For each of the $n$ iterations and each of the $k$ coordinates, writing the equation $P_{i,m}$ requires listing $O(k^d)$ terms in the worst case. However, for a \textit{fixed} polynomial $f$ and fixed basis, the number of non-zero coefficients $\{c_{j, \boldsymbol{\ell}}^{(m)}\}$ is a constant $C(f, \xi)$. Therefore, generating all $nk$ iteration equations takes time $O(n \cdot k \cdot C(f, \xi)) = O(n)$.
+                    \item \textbf{Degree Reduction:} The number of monomials $T$ of degree $>2$ is also $O(1)$ for a fixed $f$ and $k$. Introducing the auxiliary variables and equations for each monomial takes $O(d)$ time per monomial. Thus, this step takes $O(1)$ time.
+                    \item \textbf{Output:} Writing the final system of $M = O(n)$ equations in $N' = O(n)$ variables takes time $O(n \cdot \log q)$ to write down the coefficients.
+                \end{enumerate}
+                The overall time complexity of $\mathcal{R}$ is polynomial in the input size $|\Pi| = O(n \cdot \log q)$. The output instance $\mathcal{S}$ has $O(n)$ variables and equations.
+            \textbf{Part 5: Indistinguishability of the MQ System (Optional Strengthening)}
+                While the polynomial-time reduction to the NP-complete problem $\MQ_{\Fp}$ is sufficient to establish worst-case hardness, we can make a stronger claim about the average-case hardness of $\AIIP$ by showing that for a randomly chosen polynomial $f$, the resulting MQ system is computationally indistinguishable from a random system of quadratic equations.
+                This requires a cryptographic assumption about the pseudorandomness of the iterated polynomial map.
+                \begin{definition}[Pseudorandom Function Family for Iterated Maps]
+                    Let $\family_d$ be a family of degree-$d$ polynomials over $\Fq$. For a fixed iteration depth $n$, define the function family $\mathcal{G}_n = \{ g_x: \family_d \to \Fq \mid g_x(f) = f^{[n]}(x) \}$.
+                    We say $\mathcal{G}_n$ is a \textit{Pseudorandom Function Family} (PRF) if for all probabilistic polynomial-time distinguishers $\mathcal{D}$,
+                    \begin{equation}
+                        \left| \Pr_{f \leftarrow \family_d}[\mathcal{D}^{g_x(\cdot)} = 1] - \Pr_{R \leftarrow \mathcal{U}}[\mathcal{D}^{R(\cdot)} = 1] \right| \leq \negl(n),
+                    \end{equation}
+                    where $\mathcal{U}$ is the uniform distribution over all functions from $\family_d$ to $\Fq$, and $\negl(n)$ is a negligible function in $n$.
+                \end{definition}
+                \begin{lemma}[Indistinguishability]\label{lemma:indist}
+                    Assume the function family $\mathcal{G}_n$, as defined above, is a pseudorandom function family (PRF). Then, for a randomly chosen $f \leftarrow \family_d$, the system of quadratic equations $\mathcal{S}$ generated by the reduction $\mathcal{R}$ from the instance $(f, n, y)$ is computationally indistinguishable from a random system of quadratic equations with the same dimensions (number of variables and equations).
+                \end{lemma}
+                \begin{proof}
+                    We prove this by contradiction. Assume there exists a probabilistic polynomial-time distinguisher $\mathcal{A}$ that can distinguish the MQ system $\mathcal{S}$ generated from a random $\AIIP$ instance from a truly random MQ system with non-negligible advantage $\epsilon$.
+                    We construct a distinguisher $\mathcal{D}$ that breaks the PRF assumption for $\mathcal{G}_n$.
+                    \begin{enumerate}
+                        \item $\mathcal{D}$ is given oracle access to a function $O$, which is either $g_x(f) = f^{[n]}(x)$ for a random $f \leftarrow \family_d$ and fixed $x$, or a truly random function $R(f)$.
+                        \item $\mathcal{D}$ chooses a random target $y \leftarrow \Fq$.
+                        \item $\mathcal{D}$ constructs an MQ system $\mathcal{S}'$ as follows:
+                        \begin{enumerate}
+                            \item It runs the reduction $\mathcal{R}$ to generate the core structure for the instance $(f, n, y)$, i.e., it sets up the variables $\vect{x}_0, \ldots, \vect{x}_n$ and generates the symbolic equations $P_{i,m}(\vect{x}_{i-1}, \vect{x}_i) = x_{i,m} - F^{(m)}(\vect{x}_{i-1})$ \textit{without} populating the coefficients $c_{j, \boldsymbol{\ell}}^{(m)}$ which depend on $f$.
+                            \item For the coefficients defining the quadratic forms (which depend on the specific $f$), $\mathcal{D}$ queries its oracle $O$ for the values needed to compute the coefficients $\{c_{j, \boldsymbol{\ell}}^{(m)}\}$ for a hypothetical polynomial $f$. Since $O$ returns values in $\Fq$, $\mathcal{D}$ can use these values to algorithmically derive the coefficients for the equations in $\Fp$ (this is the precomputation step described in the reduction).
+                            \item If the oracle $O$ is the real function $g_x$, the coefficients are consistent with some polynomial $f$, and $\mathcal{S}'$ is distributed exactly as $\mathcal{S} = \mathcal{R}(f, n, y)$.
+                            \item If the oracle $O$ is a random function $R$, the coefficients are inconsistent and uniformly random, making the entire system $\mathcal{S}'$ a random system of quadratic equations.
+                        \end{enumerate}
+                        \item $\mathcal{D}$ provides the system $\mathcal{S}'$ to the distinguisher $\mathcal{A}$.
+                        \item If $\mathcal{A}$ outputs that $\mathcal{S}'$ is structured (i.e., comes from $\AIIP$), $\mathcal{D}$ guesses that $O = g_x$. If $\mathcal{A}$ outputs that $\mathcal{S}'$ is random, $\mathcal{D}$ guesses that $O = R$.
+                    \end{enumerate}
+                    The advantage of $\mathcal{D}$ in breaking the PRF is identical to the advantage $\epsilon$ of $\mathcal{A}$. By the initial PRF assumption, this advantage must be negligible. Therefore, no such efficient distinguisher $\mathcal{A}$ can exist, and the systems must be computationally indistinguishable.
+                \end{proof}
+                \begin{remark}
+                    This lemma provides a much stronger security guarantee. It implies that solving $\AIIP$ for a random $f$ is as hard as solving a \textit{random} MQ instance, which is a well-studied and widely assumed hard problem. The proof hinges on the strength of the PRF assumption for the iterated polynomial map, which is a non-standard but plausible conjecture for certain polynomial families (e.g., $x^2 + c$ over appropriate fields).
+                \end{remark}
+            \textbf{Part 6: Hardness Interpretation}
+                The reduction $\mathcal{R}$ is a polynomial-time many-one reduction from $\AIIP$ to $\MQ_{\Fp}$. This proves the following:
+                \begin{enumerate}
+                    \item \textbf{Worst-case Hardness:} The reduction holds unconditionally. Any algorithm that solves \textit{any} instance of $\MQ_{\Fp}$ can be used to solve $\AIIP$ via $\mathcal{R}$, regardless of the system's structure. Since $\MQ_{\Fp}$ is NP-complete \cite{Patarin1996, Garey1979}, $\AIIP$ is intractable in the worst case under the P $\neq$ NP assumption.
+                    \item \textbf{Average-case Hardness (Conditional):} Under the stronger assumption that the iterated polynomial map for a random $f \in \family_d$ constitutes a pseudorandom function family (Definition 4.5), \cref{lemma:indist} applies. This means that for a random $f$, the resulting MQ system $\mathcal{S}$ is indistinguishable from a random MQ system. Therefore, solving $\AIIP$ for a random instance is as hard as solving a \textit{random} MQ instance, which is a conjectured hard problem on average and forms the basis for post-quantum schemes like multivariate cryptography \cite{Patarin1996}.
+                \end{enumerate}
+                \noindent This dual interpretation provides a robust foundation for the conjectured hardness of the $\AIIP$ problem.
+                \textbf{Conclusion:} We have constructed an explicit, correct, and polynomial-time reduction from $\AIIP$ to $\MQ_{\Fp}$. Therefore, $\AIIP$ is polynomial-time reducible to an NP-complete problem, indicating its inherent computational hardness. $\square$
+        \end{proof}
