@@ -1,6 +1,6 @@
-\begin{theorem}[AIIP $\leq^P_P$ HCDLP]\label{thm:aiip-hcdlp}
-            Let \( f_\alpha(x) = x^2 + \alpha \) where \(\alpha \in \Fq^*\) is a quadratic non-residue. The Affine Iterated Inversion Problem (AIIP) for \( f_\alpha \) reduces in probabilistic polynomial time to the Discrete Logarithm Problem in the Jacobian (or Class Group) of a hyperelliptic curve of genus \( g_n = 2^{n-1} - 1 \) over \(\Fq\).
-        \end{theorem}
+\begin{theorem}[AIIP Reduces to HCDLP]\label{thm:aiip-hcdlp}
+Let $f(x) = x^2 + \alpha$ where $\alpha \in \mathbb{F}_q^*$ is a quadratic non-residue. The Affine Iterated Inversion Problem for $(f, n, y)$ reduces to the Discrete Logarithm Problem in the Jacobian of a hyperelliptic curve of genus $g_n = 2^{n-1} - 1$ over $\mathbb{F}_q$. The reduction runs in time $O(2^n \cdot \text{poly}(\log q))$.
+\end{theorem}
         \begin{proof}
             The reduction constructs an explicit hyperelliptic curve \( C_{n,y} \) from the AIIP instance \((f_\alpha, n, y)\) and maps the problem of finding a preimage \(x_0\) to finding a relationship between two divisors in the Jacobian \(\jacobian(C_{n,y})\).
             \textbf{Part 1: Explicit Curve Construction}
@@ -70,3 +70,4 @@
                 This reduction is fundamentally different from the AIIP\(\to\)MQ reduction. It connects AIIP to a number-theoretic problem rather than a combinatorial one, providing evidence for its hardness against quantum algorithms, as Shor's algorithm does not apply to high-genus Jacobians.
             \end{remark}
         \end{proof}
+
